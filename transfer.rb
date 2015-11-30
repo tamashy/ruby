@@ -69,17 +69,17 @@ def connect_sftp(hostname, username, password)
   if sftp.open? == true
    log_error("Connected to the sFTP server #{hostname}")
   else
-      log_error("Unable to connect to the sFTP server: #{hostname}")
-      exit!
+    log_error("Unable to connect to the sFTP server: #{hostname}")
+    exit!
   end
 end
 
 #Method for downloading the files from FTP server only if files conform to the regexp.
 def download_from_ftp(d_connection, dir_local, backup_rem_dir, file_regex)
   files = d_connection.nlst.select{|e| e =~ /#{file_regex}/}
-  if files.empty?
-      log_error("There are no files to be downloaded from FTP server")
-     # exit!
+  if files.empty? == true
+    log_error("There are no files to be downloaded from FTP server")
+    #exit!
   else
     files.each do |f|
     log_error("This file is going to be downloaded: #{f} #{d_connection.last_response_code}")
@@ -100,7 +100,6 @@ end
 def download_from_sftp(sfd_connection, remote_dir, dir_local, backup_rem_dir, file_regex)
   file = sfd_connection.dir.entries(remote_dir).map {|e| e.name}
   s_file = file.select{|f| f =~ /#{file_regex}/}
-  puts s_file
     if s_file.empty? == true
         log_error("There are no files to be downloaded from sFTP server")
      #exit! 
@@ -141,7 +140,6 @@ end
 #Method uploading the files which are conform the regexp to the server by sFTP protocol.
 def upload_to_sftp(sfu_connection, dir_local, upload_dir, file_regex)
     full_rem_dir = sfu_connection.realpath!(upload_dir).name
-    #puts full_rem_dir
     Dir.chdir(dir_local)
     local_files = Dir.foreach(dir_local).map{|file| file}
     local_file = local_files.find_all{|x| x =~ /#{file_regex}/}
