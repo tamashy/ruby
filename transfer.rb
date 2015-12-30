@@ -18,8 +18,8 @@ end
 CONFIG = YAML.load_file("#{v1}") unless defined? CONFIG
 
 $log_file = "#{CONFIG['defaults']['log_file']}"
-$d_protocol = "#{CONFIG['down_stream']['protocol']}"
-$u_protocol = "#{CONFIG['up_stream']['protocol']}"
+d_protocol = "#{CONFIG['down_stream']['protocol']}"
+u_protocol = "#{CONFIG['up_stream']['protocol']}"
 work_path = "#{CONFIG['defaults']['dir_local']}"
 
 #Method for recording actions to the log file
@@ -195,14 +195,12 @@ else
 end
 =end
 
-if $d_protocol.downcase.match(/^ftp/)
+if d_protocol.downcase.match(/^ftp/)
   d_connection = connect_ftp("#{CONFIG['down_stream']['hostname']}", "#{CONFIG['down_stream']['user']}", "#{CONFIG['down_stream']['password']}")
-  puts d_connection
   download_from_ftp(d_connection, "#{CONFIG['defaults']['dir_local']}", "#{CONFIG['down_stream']['backup_dir']}", "#{CONFIG['defaults']['regexp']}")
   close_connection(d_connection)
-elsif $d_protocol.downcase.match(/^sftp/)
+elsif d_protocol.downcase.match(/^sftp/)
   sfd_connection = connect_sftp("#{CONFIG['down_stream']['hostname']}", "#{CONFIG['down_stream']['user']}", "#{CONFIG['down_stream']['password']}")
-  puts sfd_connection
   download_from_sftp(sfd_connection, "#{CONFIG['down_stream']['remote_dir']}", "#{CONFIG['defaults']['dir_local']}", "#{CONFIG['down_stream']['backup_dir']}", "#{CONFIG['defaults']['regexp']}")
  #sftp_close_connection(sfd_connection)
 else
@@ -211,14 +209,12 @@ else
 end
 
 
-if $u_protocol.downcase.match(/^ftp/)
+if u_protocol.downcase.match(/^ftp/)
   u_connection = connect_ftp("#{CONFIG['up_stream']['hostname']}", "#{CONFIG['up_stream']['user']}", "#{CONFIG['up_stream']['password']}")
-  puts u_connection
   upload_ftp(u_connection, "#{CONFIG['defaults']['dir_local']}", "#{CONFIG['up_stream']['dst_dir']}", "#{CONFIG['defaults']['regexp']}")
   close_connection(u_connection)
-elsif $u_protocol.downcase.match(/^sftp/)
+elsif u_protocol.downcase.match(/^sftp/)
   sfu_connection = connect_sftp("#{CONFIG['up_stream']['hostname']}", "#{CONFIG['up_stream']['user']}", "#{CONFIG['up_stream']['password']}")
-  puts sfu_connection
   upload_to_sftp(sfu_connection, "#{CONFIG['defaults']['dir_local']}", "#{CONFIG['up_stream']['dst_dir']}", "#{CONFIG['defaults']['regexp']}")
   #sftp_close_connection(sfu_connection)
 else
