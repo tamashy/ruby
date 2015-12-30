@@ -6,20 +6,30 @@ require 'net/sftp'
 require 'rubygems'
 require 'net/ssh'
 
-v1 = ARGV[0]
+v1 = if ARGV[0]
+  ARGV[0]
+else
+  puts "The configuration file must be specified"
+  exit 1
+end
+
 
 #Reading the conf file
 CONFIG = YAML.load_file("#{v1}") unless defined? CONFIG
 
-@log_file = "#{CONFIG['defaults']['log_file']}"
-@d_protocol = "#{CONFIG['down_stream']['protocol']}"
-@u_protocol = "#{CONFIG['up_stream']['protocol']}"
+$log_file = "#{CONFIG['defaults']['log_file']}"
+$d_protocol = "#{CONFIG['down_stream']['protocol']}"
+$u_protocol = "#{CONFIG['up_stream']['protocol']}"
 work_path = "#{CONFIG['defaults']['dir_local']}"
 
 #Method for recording actions to the log file
 def log_error(error)
-  File.open(@log_file, 'a') do |log|
+  if File.exist?($log_file)
+    File.open($log_file, 'a') do |log|
     log.puts Time.now.to_s + ": " + error
+    end
+  else
+    File.new($log_file, 'w+')
   end
 end
 
@@ -185,12 +195,12 @@ else
 end
 =end
 
-if @d_protocol.downcase.match(/^ftp/)
+if $d_protocol.downcase.match(/^ftp/)
   d_connection = connect_ftp("#{CONFIG['down_stream']['hostname']}", "#{CONFIG['down_stream']['user']}", "#{CONFIG['down_stream']['password']}")
   puts d_connection
   download_from_ftp(d_connection, "#{CONFIG['defaults']['dir_local']}", "#{CONFIG['down_stream']['backup_dir']}", "#{CONFIG['defaults']['regexp']}")
   close_connection(d_connection)
-elsif @d_protocol.downcase.match(/^sftp/)
+elsif $d_protocol.downcase.match(/^sftp/)
   sfd_connection = connect_sftp("#{CONFIG['down_stream']['hostname']}", "#{CONFIG['down_stream']['user']}", "#{CONFIG['down_stream']['password']}")
   puts sfd_connection
   download_from_sftp(sfd_connection, "#{CONFIG['down_stream']['remote_dir']}", "#{CONFIG['defaults']['dir_local']}", "#{CONFIG['down_stream']['backup_dir']}", "#{CONFIG['defaults']['regexp']}")
@@ -201,12 +211,12 @@ else
 end
 
 
-if @u_protocol.downcase.match(/^ftp/)
+if $u_protocol.downcase.match(/^ftp/)
   u_connection = connect_ftp("#{CONFIG['up_stream']['hostname']}", "#{CONFIG['up_stream']['user']}", "#{CONFIG['up_stream']['password']}")
   puts u_connection
   upload_ftp(u_connection, "#{CONFIG['defaults']['dir_local']}", "#{CONFIG['up_stream']['dst_dir']}", "#{CONFIG['defaults']['regexp']}")
   close_connection(u_connection)
-elsif @u_protocol.downcase.match(/^sftp/)
+elsif $u_protocol.downcase.match(/^sftp/)
   sfu_connection = connect_sftp("#{CONFIG['up_stream']['hostname']}", "#{CONFIG['up_stream']['user']}", "#{CONFIG['up_stream']['password']}")
   puts sfu_connection
   upload_to_sftp(sfu_connection, "#{CONFIG['defaults']['dir_local']}", "#{CONFIG['up_stream']['dst_dir']}", "#{CONFIG['defaults']['regexp']}")
