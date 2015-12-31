@@ -15,21 +15,21 @@ end
 
 
 #Reading the conf file
-CONFIG = YAML.load_file("#{v1}") unless defined? CONFIG
+CONFIG = YAML.load_file(v1) unless defined? CONFIG
 
-$log_file = "#{CONFIG['defaults']['log_file']}"
-d_protocol = "#{CONFIG['down_stream']['protocol']}"
-u_protocol = "#{CONFIG['up_stream']['protocol']}"
-work_path = "#{CONFIG['defaults']['dir_local']}"
+d_protocol = CONFIG['down_stream']['protocol']
+u_protocol = CONFIG['up_stream']['protocol']
+#work_path = CONFIG['defaults']['dir_local']
 
 #Method for recording actions to the log file
 def log_error(error)
-  if File.exist?($log_file)
-    File.open($log_file, 'a') do |log|
+  log_file = CONFIG['defaults']['log_file']
+  if File.exist?(log_file)
+    File.open(log_file, 'a') do |log|
     log.puts Time.now.to_s + ": " + error
     end
   else
-    File.new($log_file, 'w+')
+    File.new(log_file, 'w+')
   end
 end
 
@@ -87,11 +87,11 @@ def download_from_ftp(d_connection, dir_local, backup_rem_dir, file_regex)
   else
     files.each do |f|
       log_error("This file is going to be downloaded: #{f} #{d_connection.last_response_code}")
-      downloaded_file = "#{dir_local}" + f
-      backup_file = "#{backup_rem_dir}" + f
+      downloaded_file = dir_local + f
+      backup_file = backup_rem_dir + f
       d_connection.get(f, downloaded_file)
       log_error("File #{f} has been downloaded")
-      d_connection.put(downloaded_file, "#{backup_file}")
+      d_connection.put(downloaded_file, backup_file)
       log_error("The file has been moved to the backup folder: #{f} #{d_connection.last_response_code}")
       d_connection.delete(f)
     end
@@ -107,20 +107,20 @@ def download_from_sftp(sfd_connection, remote_dir, dir_local, backup_rem_dir, fi
   if s_file.empty? == true
     log_error("There are no files to be downloaded from sFTP server")
   else
-    log_error("This files are going to be downloaded: #{s_file} from sFTP server")
+    log_error("These files are going to be downloaded: #{s_file} from sFTP server")
   
     full_rem_dir = sfd_connection.realpath!(remote_dir).name
     full_rem_back_dir = sfd_connection.realpath!(backup_rem_dir).name
   
-    dls = s_file.map{|item| sfd_connection.download("#{full_rem_dir}" + "/" + item, "#{dir_local}" + item)}
+    dls = s_file.map{|item| sfd_connection.download(full_rem_dir + "/" + item, dir_local + item)}
     dls.each{|d| d.wait}
     log_error("All files have been downloaded from sFTP server.")
   
     log_error("Moving files to the remote backup dirrectory.")
-    uls =  s_file.map{|item| sfd_connection.upload("#{dir_local}" + item, "#{full_rem_back_dir}" + "/" + item) }
+    uls =  s_file.map{|item| sfd_connection.upload(dir_local + item, full_rem_back_dir + "/" + item) }
     uls.each{|u| u.wait}
   
-    s_file.map{|item| sfd_connection.remove!("#{full_rem_dir}" + "/" + item)}
+    s_file.map{|item| sfd_connection.remove!(full_rem_dir + "/" + item)}
   end
   rescue Net::SFTP::StatusException => access_error
     log_error("Permission denied. A badly formatted packet or other SFTP protocol incompatibility was detected: #{access_error.message}")
@@ -146,10 +146,10 @@ def upload_to_sftp(sfu_connection, dir_local, upload_dir, file_regex)
   local_files = Dir.foreach(dir_local).map{|file| file}
   local_file = local_files.find_all{|x| x =~ /#{file_regex}/}
     if local_file.empty? == true
-      log_error("There are no file to be uploaded to the sFTP server")
+      log_error("There are no files to be uploaded to the sFTP server")
     else
       log_error("These files are going to be uploaded: #{local_file} to the sFTP server")
-      uls = local_file.map{|item| sfu_connection.upload("#{dir_local}" + item, "#{full_rem_dir}"  + "/" + item)}
+      uls = local_file.map{|item| sfu_connection.upload(dir_local + item, full_rem_dir  + "/" + item)}
       uls.each{|u| u.wait}
     end
   rescue Net::SFTP::StatusException => access_error
@@ -196,12 +196,12 @@ end
 =end
 
 if d_protocol.downcase.match(/^ftp/)
-  d_connection = connect_ftp("#{CONFIG['down_stream']['hostname']}", "#{CONFIG['down_stream']['user']}", "#{CONFIG['down_stream']['password']}")
-  download_from_ftp(d_connection, "#{CONFIG['defaults']['dir_local']}", "#{CONFIG['down_stream']['backup_dir']}", "#{CONFIG['defaults']['regexp']}")
+  d_connection = connect_ftp(CONFIG['down_stream']['hostname'], CONFIG['down_stream']['user'], CONFIG['down_stream']['password'])
+  download_from_ftp(d_connection, CONFIG['defaults']['dir_local'], CONFIG['down_stream']['backup_dir'], CONFIG['defaults']['regexp'])
   close_connection(d_connection)
 elsif d_protocol.downcase.match(/^sftp/)
-  sfd_connection = connect_sftp("#{CONFIG['down_stream']['hostname']}", "#{CONFIG['down_stream']['user']}", "#{CONFIG['down_stream']['password']}")
-  download_from_sftp(sfd_connection, "#{CONFIG['down_stream']['remote_dir']}", "#{CONFIG['defaults']['dir_local']}", "#{CONFIG['down_stream']['backup_dir']}", "#{CONFIG['defaults']['regexp']}")
+  sfd_connection = connect_sftp(CONFIG['down_stream']['hostname'], CONFIG['down_stream']['user'], CONFIG['down_stream']['password'])
+  download_from_sftp(sfd_connection, CONFIG['down_stream']['remote_dir'], CONFIG['defaults']['dir_local'], CONFIG['down_stream']['backup_dir'], CONFIG['defaults']['regexp'])
  #sftp_close_connection(sfd_connection)
 else
   log_error("Unsupported protocol. Please use FTP or sFTP.")
@@ -210,19 +210,19 @@ end
 
 
 if u_protocol.downcase.match(/^ftp/)
-  u_connection = connect_ftp("#{CONFIG['up_stream']['hostname']}", "#{CONFIG['up_stream']['user']}", "#{CONFIG['up_stream']['password']}")
-  upload_ftp(u_connection, "#{CONFIG['defaults']['dir_local']}", "#{CONFIG['up_stream']['dst_dir']}", "#{CONFIG['defaults']['regexp']}")
+  u_connection = connect_ftp(CONFIG['up_stream']['hostname'], CONFIG['up_stream']['user'], CONFIG['up_stream']['password'])
+  upload_ftp(u_connection, CONFIG['defaults']['dir_local'], CONFIG['up_stream']['dst_dir'], CONFIG['defaults']['regexp'])
   close_connection(u_connection)
 elsif u_protocol.downcase.match(/^sftp/)
-  sfu_connection = connect_sftp("#{CONFIG['up_stream']['hostname']}", "#{CONFIG['up_stream']['user']}", "#{CONFIG['up_stream']['password']}")
-  upload_to_sftp(sfu_connection, "#{CONFIG['defaults']['dir_local']}", "#{CONFIG['up_stream']['dst_dir']}", "#{CONFIG['defaults']['regexp']}")
+  sfu_connection = connect_sftp(CONFIG['up_stream']['hostname'], CONFIG['up_stream']['user'], CONFIG['up_stream']['password'])
+  upload_to_sftp(sfu_connection, CONFIG['defaults']['dir_local'], CONFIG['up_stream']['dst_dir'], CONFIG['defaults']['regexp'])
   #sftp_close_connection(sfu_connection)
 else
   log_error("Unsupported protocol. Please use FTP or sFTP.")
   #exit 7
 end
 
-local_clean_up("#{CONFIG['defaults']['dir_local']}", "#{CONFIG['defaults']['backup_local']}", "#{CONFIG['defaults']['regexp']}")
+local_clean_up(CONFIG['defaults']['dir_local'], CONFIG['defaults']['backup_local'], CONFIG['defaults']['regexp'])
 log_error("----------END SCRIPT----------")
 
 =begin
