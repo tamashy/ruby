@@ -132,6 +132,7 @@ def upload_ftp(u_connection, dir_local, upload_dir, file_regex)
   Dir.foreach(dir_local) do |file|
    if file =~ /#{file_regex}/
      log_error("This file is going to be uploaded:  #{file}")
+     u_connection.chdir(upload_dir)
      u_connection.put(file, file)
      log_error("The file has been uploaded: #{file} #{u_connection.last_response_code}")
    end
