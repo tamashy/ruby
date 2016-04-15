@@ -6,13 +6,22 @@ require 'net/sftp'
 require 'rubygems'
 require 'net/ssh'
 
+BANNER = "The configuration file must be specified!"
+
+=begin
 v1 = if ARGV[0]
   ARGV[0]
 else
   puts "The configuration file must be specified"
   exit 1
 end
+=end
 
+v1 = ARGV[0]
+unless v1
+  STDERR.puts(BANNER)
+  Process.exit 1
+end
 
 #Reading the conf file
 CONFIG = YAML.load_file(v1) unless defined? CONFIG
@@ -92,7 +101,7 @@ def download_from_ftp(d_connection, dir_local, backup_rem_dir, file_regex)
       d_connection.get(f, downloaded_file)
       log_error("File #{f} has been downloaded")
       d_connection.put(downloaded_file, backup_file)
-      log_error("The file has been moved to the backup folder: #{f} #{d_connection.last_response_code}")
+      log_error("The file #{f} has been moved to the backup folder: #{backup_rem_dir} #{d_connection.last_response_code}")
       d_connection.delete(f)
     end
   end
@@ -116,7 +125,7 @@ def download_from_sftp(sfd_connection, remote_dir, dir_local, backup_rem_dir, fi
     dls.each{|d| d.wait}
     log_error("All files have been downloaded from sFTP server.")
   
-    log_error("Moving files to the remote backup dirrectory.")
+    log_error("Moving files to the remote backup dirrectory #{full_rem_back_dir}.")
     uls =  s_file.map{|item| sfd_connection.upload(dir_local + item, full_rem_back_dir + "/" + item) }
     uls.each{|u| u.wait}
   
@@ -162,11 +171,11 @@ def local_clean_up(dir_local, backup_local, regexp)
   Dir.foreach(dir_local) do |file|
     if file =~ /#{regexp}/ && File.file?(file)
       FileUtils.mv(file, backup_local)
-      log_error("File moved to the local backup path: #{file}")
+      log_error("File #{file} moved to the local backup path: #{backup_local} ")
       #log_error("Local files copy have been stored in the local backup directory")
     end
   end
-  log_error("There are no files to be stored in the local backup directory")
+  log_error("There are no files to be stored in the local backup directory: #{backup_local}")
   rescue Errno::ENOTDIR => path_error
   log_error("No such dirrectory! #{backup_local} #{path_error}")
 end
