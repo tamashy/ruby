@@ -48,7 +48,7 @@ This is a EDI transfer script
 Specify full path to configuration file in YAML                                                     
                                                                                                     
 Options                                                                                             
-    -v, --verbose                    TBD: Turn on verbose output                                    
+    -v, --verbose                    Turn on verbose output                                    
     -s, --single                     Download files in single mode one-by-one, synchroneously       
     -h, --help                       Displays Help                                                  
 ```
@@ -57,3 +57,15 @@ Options
 Just create a cron job, from example to check and transfer files from SFTP to FTP like in example above, you could use:
 ```
 */7 * * * * ruby /home/bin/transfer.rb /home/ftp/SFTP2FTP/fromSFTP2FTP.yml
+```
+
+If you want to set tranfer in single sync mode, use -s key:
+```
+*/7 * * * * ruby /home/bin/transfer.rb /home/ftp/SFTP2FTP/fromSFTP2FTP.yml -s
+```
+
+### Troubleshooting
+For troubleshooting, execute script with -v key:
+```
+ruby /home/bin/transfer.rb /home/ftp/SFTP2FTP/fromSFTP2FTP.yml
+```
