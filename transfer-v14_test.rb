@@ -13,6 +13,10 @@ require_relative 'edi-parts/local_part'
 
 # By default we don't want verbose output and want to download files asyncroneously 
 options = {:verbose=>false, :single=>false }
+
+# Show help if no arguments passed
+ARGV << '-h' if ARGV.empty?
+
 # Parse all passed options and store them in options array
 parser = OptionParser.new do|opts|
 	opts.banner = "Usage: transfer.rb CONFIG.YML [options]"
@@ -39,6 +43,7 @@ end
 parser.parse!
 # Check if YAML configuration has been passed, otherwise exit
 v1 = ARGV[0]
+puts opts
 unless v1
   STDERR.puts(opts)
   Process.exit 1
