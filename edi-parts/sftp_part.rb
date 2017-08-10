@@ -3,8 +3,9 @@ require 'net/ssh'
 
 #Method for connecting to the server by sFTP protocol
 def connect_sftp(hostname, username, password, port=22)
+  begin
     log_error("Connecting to remote server #{hostname} by sFTP protocol")
-    sftp = Net::SFTP.start(hostname, username, :password => password, :timeout => 20, :port => port) #, :number_of_password_prompts => "#{prompts}") #:verbose=>:debug,
+    sftp = Net::SFTP.start(hostname, username, :password => password, :port => port, :timeout => 20, :keepalive => true, :keepalive_maxcount => 3, :keepalive_interval => 10) #, :number_of_password_prompts => "#{prompts}") #:verbose=>:debug,
   rescue Net::SSH::ConnectionTimeout => timeout_error
     log_error("Timed out: #{timeout_error}")
   rescue Net::SSH::AuthenticationFailed => login_error
@@ -14,10 +15,16 @@ def connect_sftp(hostname, username, password, port=22)
   rescue Errno::ECONNREFUSED => login_error
     log_error("Connection refused")
   ensure
-  if sftp.open? == true
+  log_error("Ensuring sftp state")
+  if sftp.nil?
+    log_error("Unable to connect to the sFTP server: #{hostname}")
+    exit 2
+  elsif sftp.open?
     log_error("Connected to the sFTP server #{hostname}")
   else
-    log_error("Unable to connect to the sFTP server: #{hostname}")
+    log_error("Ftp connection established, but not open")
+    exit 2
+  end
   end
 end
 
@@ -47,9 +54,11 @@ end
 #Method for downloading the files from sFTP server only if files conform to the regexp.
 def download_from_sftp(sfd_connection, remote_dir, dir_local, backup_rem_dir, file_regex)
   s_file = []
-  sfd_connection.dir.glob(remote_dir, file_regex) do |entry|
+  sfd_connection.dir.entries(remote_dir).map do |entry|
     s_file << entry.name
   end
+  s_file -= [".",".."]
+  s_file = s_file.select{|f| f =~ /#{file_regex}/}
   if s_file.empty? == true
     log_error("There are no files to be downloaded from sFTP server")
   else
