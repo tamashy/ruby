@@ -1,3 +1,4 @@
+#!/usr/local/rvm/rubies/ruby-2.3.1/bin/ruby
 # Ruby script for EDI transfer project
 # Author Maxim Ivanov
 # Modified by Sergey Bulavintsev
@@ -36,16 +37,14 @@ parser = OptionParser.new do|opts|
 
 	opts.on('-h', '--help', 'Displays Help') do
 		puts opts
-		puts options
 		exit
 	end
 end
 parser.parse!
 # Check if YAML configuration has been passed, otherwise exit
 v1 = ARGV[0]
-puts opts
 unless v1
-  STDERR.puts(opts)
+  STDERR.puts("Please specify a valid YAML configuration file")
   Process.exit 1
 end
 
