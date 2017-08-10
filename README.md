@@ -67,5 +67,5 @@ If you want to set tranfer in single sync mode, use -s key:
 ### Troubleshooting
 For troubleshooting, execute script with -v key:
 ```
-ruby /home/bin/transfer.rb /home/ftp/SFTP2FTP/fromSFTP2FTP.yml
+ruby /home/bin/transfer.rb /home/ftp/SFTP2FTP/fromSFTP2FTP.yml -v
 ```
