@@ -1,4 +1,4 @@
-# ruby project EDI
+# project EDI
 This is a ruby based simple tranfer solution between FTP/SFTP servers.
 The main purpose was to set up file transfer with AS/400 systems.
 
