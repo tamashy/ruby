@@ -41,16 +41,19 @@ up_stream:
 ### Arguments
 Edi supports couple of arguments to pass:
 ``` 
-[user@server1]$ ruby transfer.rb
-Usage: transfer.rb CONFIG.YML [options]                                                             
-                                                                                                    
-This is a EDI transfer script                                                                       
-Specify full path to configuration file in YAML                                                     
-                                                                                                    
-Options                                                                                             
-    -v, --verbose                    Turn on verbose output                                    
-    -s, --single                     Download files in single mode one-by-one, synchroneously       
-    -h, --help                       Displays Help                                                  
+[ediuser@server1:~]$ ruby transfer.rb
+Usage: transfer.rb CONFIG.YML [options]
+
+This is a EDI transfer script
+Specify full path to configuration file in YAML
+By default scropt is downloading files asyncroneously
+
+Options
+    -v, --verbose                    Turn on verbose output
+    -d, --debug-ssh                  Turn on sftp connection debug
+    -s, --single                     Download files in single mode one-by-one, synchroneously
+    -n, --no-remove                  Dont remove any files
+    -h, --help                       Displays Help
 ```
 
 ### Scheduling transfers
@@ -64,8 +67,17 @@ If you want to set tranfer in single sync mode, use -s key:
 */7 * * * * ruby /home/bin/transfer.rb /home/ftp/SFTP2FTP/fromSFTP2FTP.yml -s
 ```
 
+If your dont want to remove any files from remote SFTP server, use -n key:
+*/7 * * * * ruby /home/bin/transfer.rb /home/ftp/SFTP2FTP/fromSFTP2FTP.yml -n
+
 ### Troubleshooting
 For troubleshooting, execute script with -v key:
 ```
 ruby /home/bin/transfer.rb /home/ftp/SFTP2FTP/fromSFTP2FTP.yml -v
+```
+
+For even more in-depth research, pass -d key to turn on SSH connection debug:
+
+```
+ruby /home/bin/transfer.rb /home/ftp/SFTP2FTP/fromSFTP2FTP.yml -v -d
 ```
