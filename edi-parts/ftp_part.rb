@@ -22,15 +22,20 @@ end
 
 #Method for downloading the files from FTP server only if files conform to the regexp.
 def download_from_ftp(d_connection, dir_local, backup_rem_dir, file_regex, remote_dir)
+  d_connection.chdir(remote_dir)
   files = d_connection.nlst.select{|e| e =~ /#{file_regex}/}
+  log_error("#{files} has been generated")
   if files.empty? == true
     log_error("There are no files to be downloaded from FTP server")
   else
     files.each do |f|
       log_error("This file is going to be downloaded: #{f} #{d_connection.last_response_code}")
       downloaded_file = dir_local + f
+      log_error("#{downloaded_file} has been generated")
       backup_file = backup_rem_dir + f
+      log_error("#{downloaded_file} #{f} get")
       d_connection.get(f, downloaded_file)
+      log_error("#{downloaded_file} #{f} get")
       log_error("File #{f} has been downloaded")
       d_connection.put(downloaded_file, backup_file)
       log_error("The file #{f} has been moved to the backup folder: #{backup_rem_dir} #{d_connection.last_response_code}")
@@ -38,7 +43,7 @@ def download_from_ftp(d_connection, dir_local, backup_rem_dir, file_regex, remot
     end
   end
   rescue Net::FTPPermError => access_error
-    log_error("Unable to put the file: #{f} #{d_connection.last_response_code}")
+    log_error("Unable to put the file:  #{d_connection.last_response_code}")
 end
 
 #Method uploading the files which are conform the regexp to the server by FTP protocol.

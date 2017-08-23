@@ -4,6 +4,7 @@
 # Modified by Sergey Bulavintsev
 
 # 20170810 v14 - Added parser for arguments, you can now download files consequently
+# 20170814 v15 - New agrument to don't remove any files 
 
 require 'yaml'
 require 'optparse'
@@ -13,7 +14,7 @@ require_relative 'edi-parts/local_part'
 
 
 # By default we don't want verbose output and want to download files asyncroneously 
-options = {:verbose=>false, :single=>false }
+options = {:verbose=>false, :single=>false, :noremove=>false, :debugssh=>false }
 
 # Show help if no arguments passed
 ARGV << '-h' if ARGV.empty?
@@ -24,15 +25,28 @@ parser = OptionParser.new do|opts|
 	opts.separator ""
 	opts.separator "This is a EDI transfer script"
 	opts.separator "Specify full path to configuration file in YAML"
+	opts.separator "By default scropt is downloading files asyncroneously"
 	opts.separator ""
+
+        # Turn on verbose output
 	opts.separator "Options"
-	opts.on('-v', '--verbose', 'TBD: Turn on verbose output') do |verbose|
+	opts.on('-v', '--verbose', 'Turn on verbose output') do |verbose|
 		options[:verbose] = true;
-		
 	end
-        #Turn it on if scripts can't remove files from SFTP
-	opts.on('-s', '--single', 'Download files in single mode one-by-one, synchroneously') do |sync|
+
+	# Turn on ssh debug
+        opts.on('-d', '--debug-ssh', 'Turn on sftp connection debug') do |debugssh|
+		options[:debugssh] = true;
+	end
+
+        # Turn it on if scripts can't remove files from SFTP
+	opts.on('-s', '--single', 'Download files in single mode one-by-one, synchroneously') do |single|
 		options[:single] = true;
+	end
+
+	# Avoid removing any files after downloading them
+	opts.on('-n', '--no-remove', 'Dont remove any files') do |noremove|
+		options[:noremove] = true;
 	end
 
 	opts.on('-h', '--help', 'Displays Help') do
@@ -49,7 +63,7 @@ unless v1
 end
 
 if options[:verbose]
-  puts "Using following options: #{options} "
+  puts "---Using following options: #{options} "
 end
 
 #Reading the conf file
@@ -65,6 +79,11 @@ log_error("----------START SCRIPT----------")
 log_error("Checking if transfer process is running already")
 lock_proc.lock_file(lfile)
 
+if options[:verbose]
+  puts "-->DOWN_STREAM: Downloading files from #{CONFIG['down_stream']['hostname']}:#{CONFIG['down_stream']['protocol']} from  #{CONFIG['down_stream']['remote_dir']} using REGEXP #{CONFIG['defaults']['regexp']}"
+  puts "<--UPSTREAM: Uploading files to #{CONFIG['up_stream']['hostname']}:#{CONFIG['up_stream']['protocol']} to  #{CONFIG['up_stream']['dst_dir']}"
+end
+
 if d_protocol.downcase.match(/^ftp/)
 #  log_error("Open d_connection")
   d_connection = connect_ftp(CONFIG['down_stream']['hostname'], CONFIG['down_stream']['user'], CONFIG['down_stream']['password'])
@@ -73,8 +92,8 @@ if d_protocol.downcase.match(/^ftp/)
 #  log_error("Close d_connection")
 elsif d_protocol.downcase.match(/^sftp/)
 #  log_error("Open sfd_connection")
-  sfd_connection = connect_sftp(CONFIG['down_stream']['hostname'], CONFIG['down_stream']['user'], CONFIG['down_stream']['password'], CONFIG['down_stream']['port'], options[:verbose])
-  download_from_sftp(sfd_connection, CONFIG['down_stream']['remote_dir'], CONFIG['defaults']['dir_local'], CONFIG['down_stream']['backup_dir'], CONFIG['defaults']['regexp'], options[:verbose],options[:single])
+  sfd_connection = connect_sftp(CONFIG['down_stream']['hostname'], CONFIG['down_stream']['user'], CONFIG['down_stream']['password'], CONFIG['down_stream']['port'], options)
+  download_from_sftp(sfd_connection, CONFIG['down_stream']['remote_dir'], CONFIG['defaults']['dir_local'], CONFIG['down_stream']['backup_dir'], CONFIG['defaults']['regexp'], options)
  #sftp_close_connection(sfd_connection)
 #  log_error("Close d_connection")
 elsif d_protocol.downcase.match(/local/)
@@ -89,8 +108,8 @@ if u_protocol.downcase.match(/^ftp/)
   upload_ftp(u_connection, CONFIG['defaults']['dir_local'], CONFIG['up_stream']['dst_dir'], CONFIG['defaults']['regexp'])
   close_connection(u_connection)
 elsif u_protocol.downcase.match(/^sftp/)
-  sfu_connection = connect_sftp(CONFIG['up_stream']['hostname'], CONFIG['up_stream']['user'], CONFIG['up_stream']['password'], CONFIG['up_stream']['port'], options[:verbose])
-  upload_to_sftp(sfu_connection, CONFIG['defaults']['dir_local'], CONFIG['up_stream']['dst_dir'], CONFIG['defaults']['regexp'])
+  sfu_connection = connect_sftp(CONFIG['up_stream']['hostname'], CONFIG['up_stream']['user'], CONFIG['up_stream']['password'], CONFIG['up_stream']['port'], options)
+  upload_to_sftp(sfu_connection, CONFIG['defaults']['dir_local'], CONFIG['up_stream']['dst_dir'], CONFIG['defaults']['regexp'], options)
   #sftp_close_connection(sfu_connection)
 else
   log_error("Unsupported protocol. Please use FTP or sFTP.")
