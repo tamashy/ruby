@@ -33,6 +33,11 @@ class ProtectionProcess
   end
 end
 
+##Method for creating lock file
+#def lock_file(path)
+#  File.new(path + '/' + 'lock_file', 'w+')
+#end
+
 #Housekeeping in the local dirrectory
 def local_clean_up(dir_local, backup_local, regexp)
   Dir.foreach(dir_local) do |file|

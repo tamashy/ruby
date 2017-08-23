@@ -80,8 +80,8 @@ log_error("Checking if transfer process is running already")
 lock_proc.lock_file(lfile)
 
 if options[:verbose]
-  puts "-->Downloading files from #{CONFIG['down_stream']['hostname']}:#{CONFIG['down_stream']['protocol']} from  #{CONFIG['down_stream']['remote_dir']} using REGEXP #{CONFIG['defaults']['regexp']}"
-  puts "<--Uploading files to #{CONFIG['up_stream']['hostname']}:#{CONFIG['up_stream']['protocol']} to  #{CONFIG['up_stream']['dst_dir']}"
+  puts "-->DOWN_STREAM: Downloading files from #{CONFIG['down_stream']['hostname']}:#{CONFIG['down_stream']['protocol']} from  #{CONFIG['down_stream']['remote_dir']} using REGEXP #{CONFIG['defaults']['regexp']}"
+  puts "<--UPSTREAM: Uploading files to #{CONFIG['up_stream']['hostname']}:#{CONFIG['up_stream']['protocol']} to  #{CONFIG['up_stream']['dst_dir']}"
 end
 
 if d_protocol.downcase.match(/^ftp/)
