@@ -25,7 +25,7 @@ parser = OptionParser.new do|opts|
 	opts.separator ""
 	opts.separator "This is a EDI transfer script"
 	opts.separator "Specify full path to configuration file in YAML"
-	opts.separator "By default scropt is downloading files asyncroneously"
+	opts.separator "By default script is downloading files asynchronously"
 	opts.separator ""
 
         # Turn on verbose output

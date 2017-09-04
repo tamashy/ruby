@@ -87,7 +87,7 @@ def download_from_sftp(sfd_connection, remote_dir, dir_local, backup_rem_dir, fi
       puts "---Checking #{full_rem_back_dir} permissions: %04o" % sfd_connection.lstat!(full_rem_back_dir).permissions
     end
 
-    #Check if single key has been passwd as argument and then download files in single mode
+    #Check if single key has been passed as argument and then download files in single mode
     if options[:single]
       if options[:verbose]
         puts "---Downloading files in SINGLE SYNC MODE"
